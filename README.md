@@ -21,7 +21,7 @@ A React application that displays the most popular articles from the NY Times AP
 
 1. Clone the repository:
 ```bash
-git clone [<repository-url>](https://github.com/Raghav-Sao/news-demo.git)
+git clone https://github.com/Raghav-Sao/news-demo.git
 cd news-demo
 ```
 
