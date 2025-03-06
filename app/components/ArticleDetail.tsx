@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Image from 'next/image';
 import { Article } from '../types/article';
 import { formatDate } from '../utils/dateFormatter';
@@ -9,9 +9,40 @@ interface ArticleDetailProps {
 }
 
 export const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }) => {
-  const largeImage = article.media[0]?.['media-metadata']?.find(
-    (meta) => meta.format === 'mediumThreeByTwo440'
-  );
+  const getImageMetadata = () => {
+    const mediaMetadata = article.media[0]?.['media-metadata'];
+    if (!mediaMetadata) return null;
+
+    // Try to find both small and large formats
+    const smallFormat = mediaMetadata.find(
+      (meta) => meta.format === 'Standard Thumbnail'
+    );
+    const largeFormat = mediaMetadata.find(
+      (meta) => meta.format === 'mediumThreeByTwo440'
+    );
+
+    // If neither format is found, use the first available image
+    return {
+      small: smallFormat || mediaMetadata[0],
+      large: largeFormat || mediaMetadata[0]
+    };
+  };
+
+  const imageMetadata = getImageMetadata();
+
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [onClose]);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -40,14 +71,21 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }
             </button>
           </div>
 
-          {largeImage && (
+          {imageMetadata && (
             <div className="mb-4">
               <Image
-                src={largeImage.url}
+                src={imageMetadata.small.url}
                 alt={article.title}
-                width={largeImage.width}
-                height={largeImage.height}
-                className="rounded-lg w-full"
+                width={imageMetadata.small.width}
+                height={imageMetadata.small.height}
+                className="rounded-lg w-full md:hidden"
+              />
+              <Image
+                src={imageMetadata.large.url}
+                alt={article.title}
+                width={imageMetadata.large.width}
+                height={imageMetadata.large.height}
+                className="rounded-lg w-full hidden md:block"
               />
             </div>
           )}
