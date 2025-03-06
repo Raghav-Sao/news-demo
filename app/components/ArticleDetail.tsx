@@ -11,21 +11,21 @@ interface ArticleDetailProps {
 export const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }) => {
   const getImageMetadata = () => {
     const mediaMetadata = article.media[0]?.['media-metadata'];
-    if (!mediaMetadata) return null;
+    if (!mediaMetadata || mediaMetadata.length === 0) return null;
 
-    // Try to find both small and large formats
-    const smallFormat = mediaMetadata.find(
-      (meta) => meta.format === 'Standard Thumbnail'
-    );
-    const largeFormat = mediaMetadata.find(
+    // Try to find mediumThreeByTwo440 format first
+    const preferredFormat = mediaMetadata.find(
       (meta) => meta.format === 'mediumThreeByTwo440'
     );
 
-    // If neither format is found, use the first available image
-    return {
-      small: smallFormat || mediaMetadata[0],
-      large: largeFormat || mediaMetadata[0]
-    };
+    // If preferred format is not found, use the first available image
+    const imageToUse = preferredFormat || mediaMetadata[0];
+
+    // Use the same image for both small and large displays
+    return imageToUse ? {
+      small: imageToUse,
+      large: imageToUse
+    } : null;
   };
 
   const imageMetadata = getImageMetadata();

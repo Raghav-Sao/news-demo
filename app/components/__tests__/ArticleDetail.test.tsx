@@ -78,13 +78,14 @@ describe('ArticleDetail', () => {
     expect(getByText('test,keywords')).toBeInTheDocument();
     const images = getAllByAltText('Test Article');
     expect(images).toHaveLength(2);
-    expect(images[0]).toHaveAttribute('src', mockArticle.media[0]['media-metadata'][0].url);
+    // Both images should use mediumThreeByTwo440 format
+    expect(images[0]).toHaveAttribute('src', mockArticle.media[0]['media-metadata'][1].url);
     expect(images[1]).toHaveAttribute('src', mockArticle.media[0]['media-metadata'][1].url);
     expect(getByText('Read Full Article')).toBeInTheDocument();
   });
 
   describe('Image handling', () => {
-    it('renders both mobile and desktop images when available', () => {
+    it('renders both mobile and desktop images using mediumThreeByTwo440 format when available', () => {
       const handleClose = jest.fn();
       const { getAllByRole } = render(
         <ArticleDetail article={mockArticle} onClose={handleClose} />
@@ -92,8 +93,10 @@ describe('ArticleDetail', () => {
   
       const images = getAllByRole('img');
       expect(images).toHaveLength(2);
-      expect(images[0]).toHaveAttribute('src', mockArticle.media[0]['media-metadata'][0].url); // small image
-      expect(images[1]).toHaveAttribute('src', mockArticle.media[0]['media-metadata'][1].url); // large image
+      // Both images should use mediumThreeByTwo440 format
+      const mediumThreeByTwo440Url = mockArticle.media[0]['media-metadata'][1].url;
+      expect(images[0]).toHaveAttribute('src', mediumThreeByTwo440Url);
+      expect(images[1]).toHaveAttribute('src', mediumThreeByTwo440Url);
       
       // Check classes for responsive display
       expect(images[0]).toHaveClass('md:hidden');
@@ -138,24 +141,28 @@ describe('ArticleDetail', () => {
       expect(queryByRole('img')).not.toBeInTheDocument();
     });
   
-    it('renders without image when media-metadata is undefined', () => {
+    it('renders without image when media-metadata is empty', () => {
       const handleClose = jest.fn();
-      const articleWithoutMetadata = {
+      const articleWithEmptyMetadata = {
         ...mockArticle,
         media: [{
-          ...mockArticle.media[0],
-          'media-metadata': undefined
+          type: 'image',
+          subtype: 'photo',
+          caption: 'Test Caption',
+          copyright: '© 2024 NYT',
+          approved_for_syndication: 1,
+          'media-metadata': []
         }]
       };
       
       const { queryByRole } = render(
-        <ArticleDetail article={articleWithoutMetadata} onClose={handleClose} />
+        <ArticleDetail article={articleWithEmptyMetadata} onClose={handleClose} />
       );
   
       expect(queryByRole('img')).not.toBeInTheDocument();
     });
 
-    it('renders without image when media exists but has no media-metadata property', () => {
+    it('renders without image when media exists but has no media-metadata', () => {
       const handleClose = jest.fn();
       const articleWithoutMetadataProperty = {
         ...mockArticle,
@@ -164,8 +171,8 @@ describe('ArticleDetail', () => {
           subtype: 'photo',
           caption: 'Test Caption',
           copyright: '© 2024 NYT',
-          approved_for_syndication: 1
-          // media-metadata property is missing entirely
+          approved_for_syndication: 1,
+          'media-metadata': []
         }]
       };
       
